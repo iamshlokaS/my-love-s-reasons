@@ -35,11 +35,6 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
         setGameState({ clicks: 0, target: 15, timeLeft: 10 });
         startTimer();
         break;
-      case "pattern":
-        const pattern = generatePattern(4);
-        setGameState({ pattern, userPattern: [], showing: true });
-        setTimeout(() => setGameState((prev: any) => ({ ...prev, showing: false })), 2000);
-        break;
       case "scramble":
         const words = ["LOVE", "HEART", "FOREVER", "ROMANCE", "TOGETHER"];
         const word = words[Math.floor(Math.random() * words.length)];
