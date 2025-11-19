@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Heart, Sparkles, Trophy } from "lucide-react";
-import couplePhoto from "@/assets/couple-photo.png";
+import finalPhoto from "@/assets/final.jpeg";
 
 interface FinalSurpriseProps {
   totalUnlocked: number;
@@ -10,7 +10,7 @@ export const FinalSurprise = ({ totalUnlocked }: FinalSurpriseProps) => {
   const [typedText, setTypedText] = useState("");
   const [showContent, setShowContent] = useState(false);
   
-  const fullText = "Thank you for being the man you are. You make my world better. I'm lucky to love you. Happy Men's Day, my love.";
+  const fullText = "Thank you for being the man you are. You make my world better. I'm lucky to love you. Happy Men's Day, Ayushmaan. I LOVE YOU TOO MUCH! ";
 
   useEffect(() => {
     setTimeout(() => setShowContent(true), 500);
@@ -70,7 +70,7 @@ export const FinalSurprise = ({ totalUnlocked }: FinalSurpriseProps) => {
                 <div className="relative inline-block">
                   <div className="absolute inset-0 bg-primary/30 blur-3xl animate-glow" />
                   <img
-                    src={couplePhoto}
+                    src={finalPhoto}
                     alt="Us"
                     className="relative w-full max-w-md mx-auto rounded-3xl border-4 border-primary/50 shadow-2xl"
                   />
@@ -108,7 +108,7 @@ export const FinalSurprise = ({ totalUnlocked }: FinalSurpriseProps) => {
                 className="text-lg text-white/80 animate-fade-in" 
                 style={{ animationDelay: '2s', fontFamily: 'cursive' }}
               >
-                Come back anytime you forget how loved you are 💓
+                Come back anytime you forget that I love you 💓
               </p>
             </>
           )}

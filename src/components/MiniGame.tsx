@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 interface MiniGameProps {
-  gameType: "catch" | "memory" | "quickclick" | "scramble" | "simon" | "drag" | "trivia" | "colormatch" | "rhythm" | "maze" | "balloon" | "puzzle" | "whack" | "reaction" | "dots" | "difference" | "cardflip" | "typing" | "falling" | "spin" | "tictactoe";
+  gameType: "catch" | "memory" | "quickclick" | "scramble" | "simon" | "drag" | "trivia" | "colormatch" | "rhythm" | "maze" | "balloon" | "puzzle" | "whack" | "reaction" | "dots" | "difference" | "cardflip" | "typing" | "falling" | "spin" | "tictactoe" | "pet";
   onComplete: () => void;
   reasonNumber: number;
 }
@@ -36,22 +36,20 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
         startTimer();
         break;
       case "scramble":
-        const words = ["LOVE", "HEART", "FOREVER", "ROMANCE", "TOGETHER"];
-        const word = words[Math.floor(Math.random() * words.length)];
+        const word = "BELGIUM WAFFLES";
         setGameState({ word, scrambled: scrambleWord(word), userInput: "" });
         break;
       case "simon":
-        setGameState({ sequence: [0], userSequence: [], canPlay: false, round: 1 });
-        playSequence([0]);
+        setGameState({ presses: 0, target: 3 });
         break;
       case "drag":
-        setGameState({ hearts: generateDragHearts(5), dropped: 0, target: 5 });
+        setGameState({ hearts: generateDragHearts(8), collected: 0, target: 6 });
         break;
       case "trivia":
         setGameState({ 
           questions: [
-            { q: "What makes you special?", a: ["Your smile", "Your heart", "Your humor", "Everything"], correct: 3 },
-            { q: "What do I love most?", a: ["Your laugh", "Your kindness", "Your love", "All of you"], correct: 3 },
+            { q: "What is my favorite thing you make?", a: ["Maggi", "Paneer Franky", "Everything", "Cold Coffee"], correct: 2},
+            { q: "What do I love most?", a: ["Your laugh", "Your kindness", "All of you", "Your Love"], correct: 2 },
           ],
           currentQ: 0,
           answered: false
@@ -61,14 +59,18 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
         setGameState({ colors: generateColorPairs(), selected: null, matched: 0, target: 4 });
         break;
       case "rhythm":
-        setGameState({ beats: generateBeats(8), currentBeat: 0, hits: 0 });
+        setGameState({ taps: 0, target: 20, timeLeft: 8 });
         startRhythmGame();
+        break;
+      case "pet":
+        // Cute, simple tap-to-pet game
+        setGameState({ pets: [{ id: 0 }], petCount: 0, target: 8 });
         break;
       case "maze":
         setGameState({ position: { x: 0, y: 0 }, goal: { x: 4, y: 4 } });
         break;
       case "balloon":
-        setGameState({ balloons: generateBalloons(10), popped: 0, target: 10 });
+        setGameState({ balloons: generateBalloons(10), popped: 0, target: 6 });
         break;
       case "puzzle":
         setGameState({ pieces: shuffleArray([0,1,2,3,4,5,6,7,8]), empty: 8 });
@@ -82,7 +84,7 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
         setTimeout(() => setGameState((prev: any) => ({ ...prev, stage: "ready", startTime: Date.now() })), Math.random() * 3000 + 2000);
         break;
       case "dots":
-        setGameState({ dots: generateDotSequence(6), connected: [] });
+        setGameState({ question: "How long have we been in a relationship?", userInput: "", answer: "9", wrong: false });
         break;
       case "difference":
         setGameState({ differences: generateDifferences(3), found: [] });
@@ -114,6 +116,7 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
     word.split('').sort(() => Math.random() - 0.5).join('');
   const generateDragHearts = (count: number) =>
     Array(count).fill(0).map((_, i) => ({ id: i, dropped: false }));
+  const heartEmojis = ["❤️", "💕", "💖", "💝", "💗", "💘", "💞", "💓"];
   const generateColorPairs = () => {
     const colors = ["#ff6b9d", "#ff8fab", "#ffc2d4", "#ffb3c6"];
     return [...colors, ...colors].sort(() => Math.random() - 0.5);
@@ -153,14 +156,34 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
   const startRhythmGame = () => {
     const interval = setInterval(() => {
       setGameState((prev: any) => {
-        if (prev.currentBeat >= prev.beats.length) {
+        if (!prev) return prev;
+        if (prev.timeLeft <= 1) {
           clearInterval(interval);
-          if (prev.hits >= 6) onComplete();
-          return prev;
+          if (prev.taps >= prev.target) onComplete();
+          return { ...prev, timeLeft: 0 };
         }
-        return { ...prev, currentBeat: prev.currentBeat + 1 };
+        return { ...prev, timeLeft: prev.timeLeft - 1 };
       });
-    }, 800);
+    }, 1000);
+  };
+
+  const handleRhythmTap = () => {
+    const taps = (gameState.taps || 0) + 1;
+    const target = gameState.target || 1;
+    setGameState({ ...gameState, taps });
+    setProgress((taps / target) * 100);
+    if (taps >= target) {
+      setTimeout(onComplete, 500);
+    }
+  };
+
+  const handlePetTap = () => {
+    const petCount = (gameState.petCount || 0) + 1;
+    setGameState({ ...gameState, petCount });
+    setProgress((petCount / (gameState.target || 1)) * 100);
+    if (petCount >= (gameState.target || 1)) {
+      setTimeout(onComplete, 500);
+    }
   };
 
   const startWhackGame = () => {
@@ -253,34 +276,31 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
     if (clicks >= gameState.target) onComplete();
   };
 
+  const handleDragTap = (index: number) => {
+    const hearts = [...(gameState.hearts || [])];
+    if (hearts[index]?.tapped) return;
+    hearts[index] = { ...hearts[index], tapped: true };
+    const collected = (gameState.collected || 0) + 1;
+    setGameState({ ...gameState, hearts, collected });
+    setProgress((collected / gameState.target) * 100);
+    if (collected >= gameState.target) {
+      setTimeout(onComplete, 500);
+    }
+  };
+
   const handleScrambleSubmit = () => {
-    if (gameState.userInput.toUpperCase() === gameState.word) {
+    const normalize = (s: string = "") => s.replace(/[^a-z0-9]/gi, "").toUpperCase();
+    if (normalize(gameState.userInput) === normalize(gameState.word)) {
       onComplete();
     }
   };
 
-  const handleSimon = (num: number) => {
-    if (!gameState.canPlay) return;
-    
-    const userSequence = [...gameState.userSequence, num];
-    setGameState({ ...gameState, userSequence });
-    
-    if (userSequence[userSequence.length - 1] !== gameState.sequence[userSequence.length - 1]) {
-      setTimeout(() => setGameState({ ...gameState, userSequence: [], canPlay: false }), 500);
-      setTimeout(() => playSequence(gameState.sequence), 1000);
-      return;
-    }
-    
-    if (userSequence.length === gameState.sequence.length) {
-      if (gameState.round >= 5) {
-        setTimeout(onComplete, 500);
-      } else {
-        const newSequence = [...gameState.sequence, Math.floor(Math.random() * 4)];
-        setTimeout(() => {
-          setGameState({ ...gameState, sequence: newSequence, userSequence: [], canPlay: false, round: gameState.round + 1 });
-          playSequence(newSequence);
-        }, 1000);
-      }
+  const handleSimon = () => {
+    const presses = (gameState.presses || 0) + 1;
+    setGameState({ ...gameState, presses });
+    setProgress(((presses) / (gameState.target || 1)) * 100);
+    if (presses >= (gameState.target || 1)) {
+      setTimeout(onComplete, 500);
     }
   };
 
@@ -290,6 +310,15 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
       setTimeout(onComplete, 500);
     } else if (correct) {
       setTimeout(() => setGameState({ ...gameState, currentQ: gameState.currentQ + 1, answered: false }), 1000);
+    }
+  };
+
+  const handleDotsSubmit = () => {
+    const inputDigits = String(gameState.userInput || "").replace(/\D/g, "");
+    if (inputDigits === String(gameState.answer)) {
+      setTimeout(onComplete, 500);
+    } else {
+      setGameState({ ...gameState, wrong: true });
     }
   };
 
@@ -464,24 +493,16 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
 
       case "simon":
         return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Simon Says! Round {gameState.round}</h3>
-            <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto">
-              {["❤️", "💕", "💖", "💝"].map((emoji, num) => (
-                <Button
-                  key={num}
-                  size="lg"
-                  className="h-32 text-6xl"
-                  onClick={() => handleSimon(num)}
-                  disabled={!gameState.canPlay}
-                >
-                  {emoji}
-                </Button>
-              ))}
-            </div>
-            <p className="text-center text-sm">
-              {gameState.canPlay ? "Repeat the sequence!" : "Watch carefully..."}
-            </p>
+          <div className="space-y-6 text-center">
+            <h3 className="text-2xl font-bold">Tap the Heart!</h3>
+            <p className="text-lg text-muted-foreground">{gameState.presses || 0} / {gameState.target || 3}</p>
+            <Button
+              size="lg"
+              className="h-40 w-40 rounded-full text-4xl"
+              onClick={handleSimon}
+            >
+              ❤️
+            </Button>
           </div>
         );
 
@@ -735,9 +756,46 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
         );
 
       case "drag":
+        return (
+          <div className="space-y-6 text-center">
+            <h3 className="text-2xl font-bold">Heart Collector!</h3>
+            <p className="text-lg text-muted-foreground">{gameState.collected || 0} / {gameState.target}</p>
+            <div className="grid grid-cols-4 gap-3 max-w-md mx-auto">
+              {gameState.hearts?.map((h: any, i: number) => (
+                <Button
+                  key={h.id}
+                  size="lg"
+                  className={`h-20 flex items-center justify-center text-3xl ${h.tapped ? 'opacity-40 scale-95' : 'hover:scale-110'}`}
+                  onClick={() => handleDragTap(i)}
+                  disabled={h.tapped}
+                >
+                  {heartEmojis[i % heartEmojis.length]}
+                </Button>
+              ))}
+            </div>
+          </div>
+        );
+
+      case "pet":
+        return (
+          <div className="space-y-6 text-center">
+            <h3 className="text-2xl font-bold">Pet the Puppy!</h3>
+            <p className="text-lg text-muted-foreground">Give the puppy {gameState.target || 8} pats</p>
+            <div className="flex items-center justify-center">
+              <Button
+                size="lg"
+                className="h-40 w-40 rounded-full text-5xl"
+                onClick={handlePetTap}
+              >
+                🐶
+              </Button>
+            </div>
+            <p className="text-xl">{gameState.petCount || 0} / {gameState.target || 8}</p>
+          </div>
+        );
+
       case "colormatch":
       case "rhythm":
-      case "dots":
       case "difference":
       case "cardflip":
         return (
@@ -747,6 +805,22 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
             <Button size="lg" onClick={onComplete}>
               Complete ✨
             </Button>
+          </div>
+        );
+
+      case "dots":
+        return (
+          <div className="space-y-6 text-center">
+            <h3 className="text-2xl font-bold">Question</h3>
+            <p className="text-xl">{gameState.question}</p>
+            <Input
+              value={gameState.userInput || ""}
+              onChange={(e) => setGameState({ ...gameState, userInput: e.target.value, wrong: false })}
+              placeholder="Enter number..."
+              className="text-center max-w-xs mx-auto"
+            />
+            {gameState.wrong && <p className="text-sm text-destructive">That's not right — try again.</p>}
+            <Button onClick={handleDotsSubmit} size="lg">Submit</Button>
           </div>
         );
 

@@ -56,7 +56,7 @@ export const WelcomeScreen = ({ onStart }: WelcomeScreenProps) => {
               I made something special for you...
             </p>
             <p className="text-lg text-muted-foreground">
-              Play fun mini-games to unlock 20 reasons why I love you 💕
+              Play fun mini-games to unlock 10 reasons why I love you 💕
             </p>
           </div>
         </div>
