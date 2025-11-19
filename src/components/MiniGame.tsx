@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 interface MiniGameProps {
-  gameType: "catch" | "memory" | "quickclick" | "pattern" | "scramble" | "simon" | "drag" | "trivia" | "colormatch" | "rhythm" | "maze" | "balloon" | "puzzle" | "whack" | "reaction" | "dots" | "difference" | "cardflip" | "typing" | "falling" | "spin" | "tictactoe";
+  gameType: "catch" | "memory" | "quickclick" | "scramble" | "simon" | "drag" | "trivia" | "colormatch" | "rhythm" | "maze" | "balloon" | "puzzle" | "whack" | "reaction" | "dots" | "difference" | "cardflip" | "typing" | "falling" | "spin" | "tictactoe";
   onComplete: () => void;
   reasonNumber: number;
 }
@@ -110,8 +110,6 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
   const shuffleArray = (array: any[]) => array.sort(() => Math.random() - 0.5);
   const generateRandomPositions = (count: number) => 
     Array(count).fill(0).map(() => ({ x: Math.random() * 80 + 10, y: Math.random() * 80 + 10, caught: false }));
-  const generatePattern = (length: number) => 
-    Array(length).fill(0).map(() => Math.floor(Math.random() * 4));
   const scrambleWord = (word: string) => 
     word.split('').sort(() => Math.random() - 0.5).join('');
   const generateDragHearts = (count: number) =>
@@ -253,19 +251,6 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
     setGameState({ ...gameState, clicks });
     setProgress((clicks / gameState.target) * 100);
     if (clicks >= gameState.target) onComplete();
-  };
-
-  const handlePattern = (num: number) => {
-    const userPattern = [...gameState.userPattern, num];
-    setGameState({ ...gameState, userPattern });
-    
-    if (userPattern.length === gameState.pattern.length) {
-      if (JSON.stringify(userPattern) === JSON.stringify(gameState.pattern)) {
-        setTimeout(onComplete, 500);
-      } else {
-        setTimeout(() => setGameState({ ...gameState, userPattern: [] }), 500);
-      }
-    }
   };
 
   const handleScrambleSubmit = () => {
@@ -456,31 +441,7 @@ export const MiniGame = ({ gameType, onComplete, reasonNumber }: MiniGameProps) 
           </div>
         );
 
-      case "pattern":
-        return (
-          <div className="space-y-6">
-            <h3 className="text-2xl font-bold text-center">Remember the Pattern!</h3>
-            <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto">
-              {[0, 1, 2, 3].map((num) => (
-                <Button
-                  key={num}
-                  size="lg"
-                  className={`h-24 text-xl ${
-                    gameState.showing && gameState.pattern?.includes(num) ? 'animate-pulse bg-primary' : ''
-                  }`}
-                  onClick={() => !gameState.showing && handlePattern(num)}
-                  disabled={gameState.showing}
-                >
-                  {num + 1}
-                </Button>
-              ))}
-            </div>
-            <p className="text-center text-sm text-muted-foreground">
-              {gameState.showing ? "Watch the pattern..." : "Repeat it!"}
-            </p>
-          </div>
-        );
-
+     
       case "scramble":
         return (
           <div className="space-y-6 text-center">
